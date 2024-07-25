@@ -1,6 +1,12 @@
 import type { ChatInputProps } from "@/app/types/chat";
+import useWhisper from "@chengsokdara/use-whisper";
 
-export default function ChatInput({ input, setInput, loading, sendMessage }: ChatInputProps) {
+export default function ChatInput({ input, setInput, loading, sendMessage, doTranscribe }: ChatInputProps) {
+
+  const { startRecording, stopRecording, recording } = useWhisper({
+    onTranscribe: doTranscribe,
+  });
+
   return (
     <form onSubmit={sendMessage}>
       <label className="hidden" htmlFor="message">
@@ -16,12 +22,20 @@ export default function ChatInput({ input, setInput, loading, sendMessage }: Cha
       />
       <button
         type="submit"
-        title="Send message"
-        disabled={input.trim() === "" || input.trim().length < 5}
+        title="Send message"        
         className="w-24 md:w-24 lg:w-auto px-4 lg:px-8 py-4 border-2 border-white bg-white text-black"
       >
+
         {loading ? <p className="animate-spin">⏳</p> : "Ask Siri"}
       </button>
+
+      <button
+        type="button"
+        onClick={recording ? stopRecording : startRecording}
+        className="w-24 md:w-24 lg:w-auto px-4 lg:px-8 py-4 border-2 border-white bg-gray-300 text-black"
+      >
+        {recording ? "Stop Recording" : "Start Recording"}
+      </button>      
     </form>
   );
 }

@@ -11,7 +11,7 @@ export async function POST(req: Request) {
   // To maximize API credits and reduce the response time.
   messages.map((message: Message) => {
     if (message.role === "user") {
-      message.content = `Imagine you are Siri, Apple's digital assistant and a user asks you the question: "${message.content}". Kindly generate a suitable response with less than 100 characters.`;
+      message.content = `Imagine you are Siri, Apple's digital assistant and a user asks you the question: "${message.content}". Kindly generate a suitable response with less than 100 characters.Respond in the following locale: zh-cn.`;
     }
   });
   // End.

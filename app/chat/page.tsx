@@ -1,24 +1,19 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState,  useRef } from "react";
 import StoreApiKeys from "@/app/components/storeApiKeys";
-import ChatVoice from "@/app/components/chatVoice";
 import ChatMessages from "@/app/components/chatMessages";
 import ChatControls from "@/app/components/chatControls";
 import ChatInput from "@/app/components/chatInput";
 import useLocalStorage from "@/app/hooks/useLocalStorage";
-import getVoices from "@/app/utils/getVoices";
 import notifyUser from "@/app/utils/notifyUser";
 import { userRole, botRole, Message } from "@/app/types/chat";
-import { Voice as VoiceResponse } from "elevenlabs/api";
+import axios from "axios";
 
 export default function ChatPage() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isModal, setIsModal] = useState(false);
   const [openAiKey, setOpenAiKey] = useLocalStorage<string>("openai-key", "");
-  const [elevenLabsKey, setElevenLabsKey] = useLocalStorage<string>("11labs-key", "");
-  const [voices, setVoices] = useState<VoiceResponse[]>([]);
-  const [selectedVoice, setSelectedVoice] = useLocalStorage<string>("selectedVoice", "Myra");
   const [input, setInput] = useState("");
   const [messages, setMessages] = useLocalStorage<Message[]>("chatMessages", []);
   const [loading, setLoading] = useState<boolean>(false);
@@ -51,9 +46,7 @@ export default function ChatPage() {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        apiKey: elevenLabsKey,
         message: text,
-        voice: selectedVoice
       })
     });
 
@@ -72,7 +65,7 @@ export default function ChatPage() {
     event.preventDefault();
     const isProduction = process.env.NEXT_PUBLIC_APP_MODE === "production";
 
-    if (isProduction && !openAiKey && !elevenLabsKey) {
+    if (isProduction && !openAiKey) {
       setIsModal(true);
     } else {
       setLoading(true);
@@ -99,59 +92,73 @@ export default function ChatPage() {
     }
   };
 
+  const doTranscribe = async (blob: Blob) => {
+    const base64 = await new Promise<string | ArrayBuffer | null>(
+      (resolve) => {
+        const reader = new FileReader()
+        reader.onloadend = () => resolve(reader.result)
+        reader.readAsDataURL(blob)
+      }
+    )
+    const body = JSON.stringify({ audio: base64, model: 'whisper-1' })
+    const headers = { 'Content-Type': 'application/json' }
+
+    const response = await axios.post('/api/transcribe', body, {
+      headers,
+    })
+
+    const { text } = await response.data
+
+    if (text) {
+      setInput(text);
+
+      return {
+        text: text
+      };
+    }
+
+    return {
+      text: ""
+    };
+  }
+
   const clearMessages = async () => {
     setMessages([]);
     localStorage.removeItem("chatMessages");
   };
 
-  useEffect(() => {
-    getVoices()
-      .then((voices) => {
-        setVoices(voices ?? []);
-      })
-      .catch((error) => {
-        console.error("Error fetching voices:", error);
-      });
-  }, []);
 
   return (
     <main className="flex flex-col min-h-screen items-center justify-between py-4 px-4 lg:px-0">
-      {voices.length === 0 ? (
-        <p className="text-white text-9xl animate-ping">...</p>
-      ) : (
-        <>
-          <div className="flex flex-col w-full z-10 fixed top-0 text-center items-center bg-gray-900">
-            <StoreApiKeys
-              {...{
-                isModal,
-                setIsModal,
-                setOpenAiKey,
-                setElevenLabsKey
-              }}
-            />
-            <ChatVoice {...{ voices, selectedVoice, setSelectedVoice }} />
-          </div>
-          <ChatMessages {...{ messages }} />
-          <div className="flex flex-col items-center w-full fixed bottom-0 pb-3 bg-gray-900">
-            <ChatControls
-              {...{
-                audioRef,
-                savedAudio,
-                messages,
-                clearMessages
-              }}
-            />
-            <ChatInput
-              {...{
-                input,
-                setInput,
-                loading,
-                sendMessage
-              }}
-            />
-          </div>
-        </>
-      )}
+      <div className="flex flex-col w-full z-10 fixed top-0 text-center items-center bg-gray-900">
+        <StoreApiKeys
+          {...{
+            isModal,
+            setIsModal,
+            setOpenAiKey,
+          }}
+        />
+      </div>
+      <ChatMessages {...{ messages }} />
+      <div className="flex flex-col items-center w-full fixed bottom-0 pb-3 bg-gray-900">
+        <ChatControls
+          {...{
+            audioRef,
+            savedAudio,
+            messages,
+            clearMessages
+          }}
+        />
+        <ChatInput
+          {...{
+            input,
+            setInput,
+            loading,
+            sendMessage,
+            doTranscribe
+          }}
+        />
+      </div>
     </main>
   );
 }

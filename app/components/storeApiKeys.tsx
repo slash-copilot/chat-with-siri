@@ -8,7 +8,6 @@ export default function StoreApiKeys({
   isModal,
   setIsModal,
   setOpenAiKey,
-  setElevenLabsKey
 }: StoreApiKeysProps) {
   const [isFocused, setIsFocused] = useState(false);
 
@@ -17,10 +16,8 @@ export default function StoreApiKeys({
 
   const handleSaveKeys = async (formData: FormData) => {
     const key1 = trimString(formData.get("openai-key") as string);
-    const key2 = trimString(formData.get("11labs-key") as string);
 
     setOpenAiKey(key1);
-    setElevenLabsKey(key2);
     setIsModal(false);
 
     notifyUser("API keys saved!", {
@@ -37,7 +34,6 @@ export default function StoreApiKeys({
       const formElement = document.getElementById("keys-form") as HTMLFormElement;
       formElement?.reset();
       setOpenAiKey("");
-      setElevenLabsKey("");
       localStorage.removeItem("openai-key");
       localStorage.removeItem("11labs-key");
 

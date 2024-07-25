@@ -12,7 +12,6 @@ export interface StoreApiKeysProps {
   isModal: boolean;
   setIsModal: (isModal: boolean) => void;
   setOpenAiKey: (voice: string) => void;
-  setElevenLabsKey: (voice: string) => void;
 }
 
 export interface ChatVoiceProps {
@@ -29,6 +28,7 @@ export interface ChatInputProps {
   input: string;
   setInput: (input: string) => void;
   loading: boolean;
+  doTranscribe(blob: Blob): Promise<{ text: string }>;
   sendMessage: (e: React.FormEvent<HTMLFormElement>) => void;
 }
 
