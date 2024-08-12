@@ -1,7 +1,6 @@
 "use client";
 
 import { useState,  useRef } from "react";
-import StoreApiKeys from "@/app/components/storeApiKeys";
 import ChatMessages from "@/app/components/chatMessages";
 import ChatControls from "@/app/components/chatControls";
 import ChatInput from "@/app/components/chatInput";
@@ -130,15 +129,6 @@ export default function ChatPage() {
 
   return (
     <main className="flex flex-col min-h-screen items-center justify-between py-4 px-4 lg:px-0">
-      <div className="flex flex-col w-full z-10 fixed top-0 text-center items-center bg-gray-900">
-        <StoreApiKeys
-          {...{
-            isModal,
-            setIsModal,
-            setOpenAiKey,
-          }}
-        />
-      </div>
       <ChatMessages {...{ messages }} />
       <div className="flex flex-col items-center w-full fixed bottom-0 pb-3 bg-gray-900">
         <ChatControls

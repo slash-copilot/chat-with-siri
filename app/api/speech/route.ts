@@ -1,8 +1,8 @@
 export async function POST(req: Request) {
-  const { apiKey, message, voice } = await req.json();
+  const { message } = await req.json();
 
   try {
-      const url = new URL('http://127.0.0.1:9880');
+      const url = new URL(process.env.TTS_SERVER_URL!)
       url.searchParams.append('text', message);
       url.searchParams.append('text_language', 'zh');
   
